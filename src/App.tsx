@@ -54,11 +54,11 @@ class App extends Component<Props, State> {
 		this.setState({ grid: newGrid });
 	}
 
-	toggleMark = (r: number, c: number) => {
+	toggleMark = (r: number, c: number, force: boolean = false) => {
 		const cell = this.state.grid[r][c];
 		this.updateCell(r, c, {
 			...cell,
-			marked: !cell.marked,
+			marked: !cell.marked || force,
 		});
 	}
 
@@ -76,7 +76,7 @@ class App extends Component<Props, State> {
 		}
 	}
 
-	inputLetter = (letter: string) => {
+	inputLetter = (letter: string, move: boolean = true) => {
 		const {
 			cursorRow,
 			cursorColumn,
@@ -93,17 +93,20 @@ class App extends Component<Props, State> {
 						[cell.letter]: letter,
 					},
 				});
+				this.toggleMark(cursorRow, cursorColumn, !!letter);
 			}
 		} else {
 			this.updateCell(cursorRow, cursorColumn, {
 				...cell,
 				letter,
 			});
+			if (move) {
+				this.handleKey('right', true);
+			}
 		}
-		this.handleKey('right');
 	}
 
-	handleKey = (key: string) => {
+	handleKey = (key: string, crossGrids: boolean = false) => {
 		const {
 			cursorRow,
 			cursorColumn,
@@ -124,9 +127,11 @@ class App extends Component<Props, State> {
 					});
 				}
 				break;
-			case 'left':
 			case 'backspace':
 			case 'delete':
+				this.inputLetter('', false);
+				break;
+			case 'left':
 				if (cursorColumn === 0) {
 					if (cursorRow === 0) {
 						this.setState({
@@ -151,6 +156,7 @@ class App extends Component<Props, State> {
 						this.setState({
 							cursorRow: 0,
 							cursorColumn: 0,
+							cursorPlain: !cursorPlain && crossGrids,
 						});
 					} else {
 						this.setState({
@@ -185,6 +191,7 @@ class App extends Component<Props, State> {
 			cursorColumn,
 			cursorPlain,
 		} = this.state;
+		const focusLetter = grid[cursorRow][cursorColumn].letter;
 		return (
 			<div className="layout">
 				<div className="grid">
@@ -197,6 +204,8 @@ class App extends Component<Props, State> {
 								}
 								if (cursorRow === r && cursorColumn === c) {
 									classNames.push(cursorPlain ? 'withCursorShadow' : 'withCursor');
+								} else if (cell.letter && cell.letter === focusLetter) {
+									classNames.push('highlighted');
 								}
 								return (
 									<div
@@ -222,6 +231,8 @@ class App extends Component<Props, State> {
 								}
 								if (cursorRow === r && cursorColumn === c) {
 									classNames.push(cursorPlain ? 'withCursor' : 'withCursorShadow');
+								} else if (cell.letter && cell.letter === focusLetter) {
+									classNames.push('highlighted');
 								}
 								return (
 									<div

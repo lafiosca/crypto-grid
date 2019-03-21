@@ -46,6 +46,14 @@
 	background-color: darkgrey;
 }
 
+.highlighted {
+	background-color: lightpink;
+}
+
+.highlighted.marked {
+	background-color: plum;
+}
+
 .spacer {
 	width: 100px;
 	height: 100px;
